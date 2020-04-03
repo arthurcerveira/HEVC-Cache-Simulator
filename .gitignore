@@ -1,0 +1,22 @@
+# Created by https://www.gitignore.io/api/python,visualstudiocode
+# Edit at https://www.gitignore.io/?templates=python,visualstudiocode
+
+### Python ###
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+### VisualStudioCode ###
+.vscode/*
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+.history
+
+# End of https://www.gitignore.io/api/python,visualstudiocode
+
+### HEVC Test Model
+mem_trace.txt
+str.bin
+rec.yuv
