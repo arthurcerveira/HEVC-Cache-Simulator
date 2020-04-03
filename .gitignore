@@ -17,6 +17,6 @@ __pycache__/
 # End of https://www.gitignore.io/api/python,visualstudiocode
 
 ### HEVC Test Model
-mem_trace.txt
+*/mem_trace.txt
 str.bin
 rec.yuv
