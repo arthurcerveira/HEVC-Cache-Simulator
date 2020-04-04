@@ -1,3 +1,5 @@
+import json
+
 PARTITION_PU = {
     '0': ([1, 1],     [1, 1]),      # 2N X 2N
     '1': ([1, 0.5],   [1, 0.5]),    # 2N X N
@@ -20,6 +22,9 @@ INITIAL_CU_SHIFT = {
     '6': ([0, 0],   [0.25, 0]),   # nL x 2N
     '7': ([0, 0],   [0.75, 0])    # nR x 2N
 }
+
+with open('tz_cand_list.json', 'r') as fp:
+    TZ_CAND_LIST = json.load(fp)
 
 
 class TraceProcessor(object):
@@ -71,8 +76,10 @@ class TraceProcessor(object):
         # C <xCand> <yCand>
         _, x, y = line.split()
 
-        initial_x = int(x) + int(self.cu_position[0])
-        initial_y = int(y) + int(self.cu_position[1])
+        center_x, center_y = self.cu_position
+
+        initial_x = int(x) + int(center_x)
+        initial_y = int(y) + int(center_y)
 
         final_x = initial_x + self.current_cu_width
         final_y = initial_y + self.current_cu_height
@@ -82,8 +89,22 @@ class TraceProcessor(object):
                 print(f"R {i} {j} {self.ref_frame}")
 
     def process_first_search(self, line):
-        pass
-        # print("posição central da first search")
+        # F <itID>
+        _, it_id = line.split()
+
+        lines = (TZ_CAND_LIST[it_id].split("\n"))
+
+        center_x, center_y = self.cu_position
+        shift_x, shift_y = self.first_search_shift
+
+        # Shift CU position to First Search
+        self.cu_position = (center_x + shift_x, center_y + shift_y)
+
+        for line in lines:
+            self.process_block(line)
+
+        # Shift CU postion back to original
+        self.cu_position = (center_x, center_y)
 
     def process_block_sequence(self, line):
         # CE <xStart> <yStart>
