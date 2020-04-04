@@ -24,10 +24,12 @@ INITIAL_CU_SHIFT = {
 
 class TraceProcessor(object):
     def __init__(self):
-        self.cu_position = tuple()
+        self.cu_position = (int(), int())
         self.ref_frame = str()
         self.cu_size = int()
         self.cu_current_cu_width = int()
+
+        self.first_search_shift = (int(), int())
 
         self.trace_dict = {
             "U ": self.process_cu,
@@ -41,6 +43,7 @@ class TraceProcessor(object):
         with open(trace_path) as trace:
             for line in trace:
                 key = line[0:2]
+
                 if key in self.trace_dict:
                     self.trace_dict[key](line)
 
@@ -59,8 +62,8 @@ class TraceProcessor(object):
 
         partition_hor, partition_ver = PARTITION_PU[size_pu][int(id_part)]
 
-        self.current_cu_width = partition_hor * self.cu_size
-        self.current_cu_height = partition_ver * self.cu_size
+        self.current_cu_width = int(partition_hor * self.cu_size)
+        self.current_cu_height = int(partition_ver * self.cu_size)
 
         self.shift_cu_position(size_pu, id_part)
 
@@ -83,8 +86,10 @@ class TraceProcessor(object):
         # print("posição central da first search")
 
     def process_block_sequence(self, line):
-        pass
-        # print("acesso a uma sequência de blocos candidatos")
+        # CE <xStart> <yStart>
+        _, x, y = line.split()
+
+        self.first_search_shift = (int(x), int(y))
 
     def shift_cu_position(self, size_pu, id_part):
         x, y = self.cu_position
@@ -94,7 +99,7 @@ class TraceProcessor(object):
         x = x + int(x_shift) * self.cu_size
         y = y + int(y_shift) * self.cu_size
 
-        self.cu_position = (x, y)
+        self.cu_position = (int(x), int(y))
 
 
 if __name__ == "__main__":
