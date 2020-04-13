@@ -56,23 +56,27 @@ class TraceProcessor(object):
                 key = line[0:2]
 
                 if key in self.dispatcher:
-                    self.dispatcher[key](line)
+                    yield self.dispatcher[key](line)
 
     def start_frame(self, line):
         # I <curr_frame_id>
         _, self.current_frame = line.split()
+
+        return list()
 
     def start_ctu(self, line):
         if self.first_ctu:
             self.first_ctu = False
         else:
             x, y = self.current_ctu_postion
-            print(f"W {x} {y} {self.current_frame}")
+            yield f"W {x} {y} {self.current_frame}"
 
         # L <xCTU> <yCTU>
         _, x, y = line.split()
 
         self.current_ctu_postion = (x, y)
+
+        return list()
 
     def process_cu(self, line):
         # U <xCU> <yCU> <size>
@@ -80,6 +84,8 @@ class TraceProcessor(object):
 
         self.cu_size = int(cu_size)
         self.cu_position = (int(x), int(y))
+
+        return list()
 
     def process_pu(self, line):
         # P <sizePU> <idPart> <ref_frame_id>
@@ -93,6 +99,8 @@ class TraceProcessor(object):
         self.current_cu_height = int(partition_ver * self.cu_size)
 
         self.shift_cu_position(size_pu, id_part)
+
+        return list()
 
     def process_block(self, line):
         # C <xCand> <yCand>
@@ -108,7 +116,7 @@ class TraceProcessor(object):
 
         for i in range(initial_y, final_y):
             for j in range(initial_x, final_x):
-                print(f"R {i} {j} {self.ref_frame}")
+                yield f"R {i} {j} {self.ref_frame}"
 
     def process_first_search(self, line):
         # F <itID>
@@ -128,11 +136,15 @@ class TraceProcessor(object):
         # Shift CU postion back to original
         self.cu_position = (center_x, center_y)
 
+        return list()
+
     def process_block_sequence(self, line):
         # CE <xStart> <yStart>
         _, x, y = line.split()
 
         self.first_search_shift = (int(x), int(y))
+
+        return list()
 
     def shift_cu_position(self, size_pu, id_part):
         x, y = self.cu_position
@@ -144,7 +156,13 @@ class TraceProcessor(object):
 
         self.cu_position = (int(x), int(y))
 
+        return list()
+
 
 if __name__ == "__main__":
     trace_processor = TraceProcessor()
-    trace_processor.process_trace("samples/mem_trace.txt")
+    generator = trace_processor.process_trace("samples/mem_trace.txt")
+
+    for operations in generator:
+        for operation in operations:
+            print(operation)
