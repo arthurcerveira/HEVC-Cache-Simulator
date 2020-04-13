@@ -29,14 +29,20 @@ with open('tz_cand_list.json', 'r') as fp:
 
 class TraceProcessor(object):
     def __init__(self):
-        self.cu_position = (int(), int())
+        self.current_frame = str()
         self.ref_frame = str()
+
+        self.cu_position = (int(), int())
         self.cu_size = int()
-        self.cu_current_cu_width = int()
+
+        self.current_ctu_postion = (int(), int())
+        self.first_ctu = True
 
         self.first_search_shift = (int(), int())
 
-        self.trace_dict = {
+        self.dispatcher = {
+            "I ": self.start_frame,
+            "L ": self.start_ctu,
             "U ": self.process_cu,
             "P ": self.process_pu,
             "C ": self.process_block,
@@ -49,8 +55,24 @@ class TraceProcessor(object):
             for line in trace:
                 key = line[0:2]
 
-                if key in self.trace_dict:
-                    self.trace_dict[key](line)
+                if key in self.dispatcher:
+                    self.dispatcher[key](line)
+
+    def start_frame(self, line):
+        # I <curr_frame_id>
+        _, self.current_frame = line.split()
+
+    def start_ctu(self, line):
+        if self.first_ctu:
+            self.first_ctu = False
+        else:
+            x, y = self.current_ctu_postion
+            print(f"W {x} {y} {self.current_frame}")
+
+        # L <xCTU> <yCTU>
+        _, x, y = line.split()
+
+        self.current_ctu_postion = (x, y)
 
     def process_cu(self, line):
         # U <xCU> <yCU> <size>
