@@ -1,4 +1,6 @@
 import json
+from datetime import datetime
+
 
 PARTITION_PU = {
     '0': ([1, 1],     [1, 1]),      # 2N X 2N
@@ -40,6 +42,9 @@ class TraceProcessor(object):
 
         self.first_search_shift = (int(), int())
 
+        self.width = int()
+        self.height = int()
+
         self.dispatcher = {
             "I ": self.start_frame,
             "L ": self.start_ctu,
@@ -49,6 +54,10 @@ class TraceProcessor(object):
             "F ": self.process_first_search,
             "CE": self.process_block_sequence
         }
+
+    def set_resolution(self, width, height):
+        self.width = width
+        self.height = height
 
     def process_trace(self, trace_path):
         with open(trace_path) as trace:
@@ -61,6 +70,8 @@ class TraceProcessor(object):
     def start_frame(self, line):
         # I <curr_frame_id>
         _, self.current_frame = line.split()
+        # 16:40
+        print(f"[{datetime.now()}]: Processing frame {self.current_frame}")
 
         return list()
 
@@ -68,8 +79,12 @@ class TraceProcessor(object):
         if self.first_ctu:
             self.first_ctu = False
         else:
-            x, y = self.current_ctu_postion
-            yield f"W {x} {y} {self.current_frame}"
+            x_pos, y_pos = self.current_ctu_postion
+
+            # Write 64x64 block starting at (x_pos, y_pos)
+            for x in range(int(x_pos), int(x_pos) + 64):
+                for y in range(int(y_pos), int(y_pos) + 64):
+                    yield f"W {x} {y} {self.current_frame}"
 
         # L <xCTU> <yCTU>
         _, x, y = line.split()
@@ -109,10 +124,16 @@ class TraceProcessor(object):
         center_x, center_y = self.cu_position
 
         initial_x = int(x) + int(center_x)
+        initial_x = initial_x if initial_x >= 0 else 0
+
         initial_y = int(y) + int(center_y)
+        initial_y = initial_y if initial_y >= 0 else 0
 
         final_x = initial_x + self.current_cu_width
+        final_x = final_x if final_x <= self.width else self.width
+
         final_y = initial_y + self.current_cu_height
+        final_y = final_y if final_y <= self.height else self.height
 
         for i in range(initial_y, final_y):
             for j in range(initial_x, final_x):
