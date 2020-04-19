@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from cpu_cache_simulator.CacheSim import CacheSim
 from trace_processor import TraceProcessor
 
@@ -19,6 +21,9 @@ class CacheSimulatorHEVC(CacheSim):
         }
 
     def simulate(self, title, width, height, video_cfg):
+        print(f"[{datetime.now():%H:%M:%S}] Processing {title} "
+              + f"in {video_cfg} configuration.")
+
         self.write_first_frame(width, height)
 
         self.trace_processor.set_resolution(width, height)
@@ -56,5 +61,7 @@ class CacheSimulatorHEVC(CacheSim):
 
 if __name__ == "__main__":
     cache_simulator = CacheSimulatorHEVC()
-    cache_simulator.simulate('BasketballDrive', 1920, 1080, 'Random Access')
-    cache_simulator.printStats()
+    result = cache_simulator.simulate(
+        'BasketballDrive', 1920, 1080, 'Random Access')
+
+    print(result)

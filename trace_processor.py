@@ -70,8 +70,7 @@ class TraceProcessor(object):
     def start_frame(self, line):
         # I <curr_frame_id>
         _, self.current_frame = line.split()
-        # 16:40
-        print(f"[{datetime.now()}]: Processing frame {self.current_frame}")
+        print(f"[{datetime.now():%H:%M:%S}] Processing frame {self.current_frame}.")
 
         return list()
 
