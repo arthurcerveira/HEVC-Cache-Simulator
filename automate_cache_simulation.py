@@ -14,8 +14,8 @@ HM = "../hm-videomem/"
 
 ENCODER_CMD = HM + "bin/TAppEncoderStatic"
 
-CONFIG = {"Low Delay": HM + "cfg/encoder_lowdelay_main.cfg",
-          "Random Access": HM + "cfg/encoder_randomaccess_main.cfg"}
+CONFIG = {  # "Low Delay": HM + "cfg/encoder_lowdelay_main.cfg",
+    "Random Access": HM + "cfg/encoder_randomaccess_main.cfg"}
 
 VIDEO_CFG_PATH = HM + "cfg/per-sequence/"
 
@@ -26,7 +26,7 @@ FRAMES = '9'
 
 
 def list_all_videos(path):
-    paths = []
+    paths = list()
 
     for root, _, files in os.walk(path):
         for f in files:
@@ -47,29 +47,39 @@ def get_video_info(video_path):
 
     video_cfg = VIDEO_CFG_PATH + title + ".cfg"
 
-    return title, width, height, video_cfg
+    return title, int(width), int(height), video_cfg
 
 
-def generate_trace(cfg, cfg_path, video_cfg, video_path):
-    cmd_array = [ENCODER_CMD, '-c', cfg, '-c', video_cfg,
+def generate_trace(cfg_path, video_cfg, video_path):
+    cmd_array = [ENCODER_CMD, '-c', cfg_path, '-c', video_cfg,
                  '-i', video_path, '-f', FRAMES]
 
     subprocess.run(cmd_array)
+
+
+def clean():
+    # Remove temporary files
+    try:
+        os.remove(TRACE_INPUT)
+        os.remove('str.bin')
+        os.remove('rec.yuv')
+    except FileNotFoundError:
+        pass
 
 
 def process_video(video_path):
     title, width, height, video_cfg = get_video_info(video_path)
 
     for cfg, cfg_path in CONFIG.items():
-        generate_trace(cfg, cfg_path, video_cfg, video_path)
+        generate_trace(cfg_path, video_cfg, video_path)
 
-        output = cache_simulator.simulate(title, width, height, video_cfg)
+        output = cache_simulator.simulate(title, width, height, cfg)
+        cache_simulator.clear()
 
         with open(CACHE_OUTPUT, 'w+') as output_file:
             output_file.write(output)
 
-        # Clean temporary files
-        os.remove(TRACE_INPUT)
+        clean()
 
 
 if __name__ == "__main__":

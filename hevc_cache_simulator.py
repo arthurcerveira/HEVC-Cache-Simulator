@@ -12,17 +12,14 @@ class CacheSimulatorHEVC(CacheSim):
 
         self.trace_processor = TraceProcessor()
 
-        self.video_height = int()
-        self.video_width = int()
-
         self.dispatcher = {
             'R': self.read,
             'W': self.write
         }
 
-    def simulate(self, title, width, height, video_cfg):
-        print(f"[{datetime.now():%H:%M:%S}] Processing {title} "
-              + f"in {video_cfg} configuration.")
+    def simulate(self, title, width, height, encoder_cfg):
+        print(f"[{datetime.now():%H:%M:%S}] Cache simulation for {title} "
+              + f"in {encoder_cfg} configuration.")
 
         self.write_first_frame(width, height)
 
@@ -32,19 +29,18 @@ class CacheSimulatorHEVC(CacheSim):
         for operations in generator:
             for operation in operations:
                 key = operation[0]
-                address = self.get_address(operation)
+                address = self.get_address(operation, width, height)
 
                 self.dispatcher[key](address)
 
-        return f"{title};{video_cfg};{self.hits};{self.misses}"
+        return f"{title};{encoder_cfg};{self.hits};{self.misses}"
 
-    def get_address(self, operation):
+    def get_address(self, operation, width, height):
         # OP <x> <y> <frameId>
         _, x, y, frame_id = operation.split()
 
-        frame_start_address = int(frame_id) * \
-            self.video_height * self.video_width
-        address_within_frame = int(x) + (int(y) * self.video_width)
+        frame_start_address = int(frame_id) * height * width
+        address_within_frame = int(x) + (int(y) * width)
 
         return frame_start_address + address_within_frame
 
@@ -54,9 +50,14 @@ class CacheSimulatorHEVC(CacheSim):
     def write_first_frame(self, video_width, video_height):
         for x in range(video_width):
             for y in range(video_height):
-                address = self.get_address(f'W {x} {y} 0')
+                address = self.get_address(
+                    f'W {x} {y} 0', video_width, video_height)
 
                 self.write(address)
+
+    def clear(self):
+        self.hits = 0
+        self.misses = 0
 
 
 if __name__ == "__main__":

@@ -120,23 +120,34 @@ class TraceProcessor(object):
         # C <xCand> <yCand>
         _, x, y = line.split()
 
+        initial_x, initial_y = self.set_initial_pos(int(x), int(y))
+        final_x, final_y = self.set_final_pos(initial_x, initial_y)
+
+        for i in range(initial_y, final_y):
+            for j in range(initial_x, final_x):
+                yield f"R {i} {j} {self.ref_frame}"
+
+    def set_initial_pos(self, x, y):
         center_x, center_y = self.cu_position
 
-        initial_x = int(x) + int(center_x)
+        # Initial position can't be nagative
+        initial_x = x + int(center_x)
         initial_x = initial_x if initial_x >= 0 else 0
 
-        initial_y = int(y) + int(center_y)
+        initial_y = y + int(center_y)
         initial_y = initial_y if initial_y >= 0 else 0
 
+        return initial_x, initial_y
+
+    def set_final_pos(self, initial_x, initial_y):
+        # Final position can't be higher than video resolution
         final_x = initial_x + self.current_cu_width
         final_x = final_x if final_x <= self.width else self.width
 
         final_y = initial_y + self.current_cu_height
         final_y = final_y if final_y <= self.height else self.height
 
-        for i in range(initial_y, final_y):
-            for j in range(initial_x, final_x):
-                yield f"R {i} {j} {self.ref_frame}"
+        return final_x, final_y
 
     def process_first_search(self, line):
         # F <itID>
@@ -181,6 +192,8 @@ class TraceProcessor(object):
 
 if __name__ == "__main__":
     trace_processor = TraceProcessor()
+    trace_processor.set_resolution(1920, 1080)
+
     generator = trace_processor.process_trace("samples/mem_trace.txt")
 
     for operations in generator:
