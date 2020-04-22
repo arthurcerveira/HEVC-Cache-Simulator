@@ -17,14 +17,14 @@ class CacheSimulatorHEVC(CacheSim):
             'W': self.write
         }
 
-    def simulate(self, title, width, height, encoder_cfg):
+    def simulate(self, trace_input, title, width, height, encoder_cfg):
         print(f"[{datetime.now():%H:%M:%S}] Cache simulation for {title} "
               + f"in {encoder_cfg} configuration.")
 
         self.write_first_frame(width, height)
 
         self.trace_processor.set_resolution(width, height)
-        generator = self.trace_processor.process_trace("samples/mem_trace.txt")
+        generator = self.trace_processor.process_trace(trace_input)
 
         for operations in generator:
             for operation in operations:
@@ -62,7 +62,6 @@ class CacheSimulatorHEVC(CacheSim):
 
 if __name__ == "__main__":
     cache_simulator = CacheSimulatorHEVC()
-    result = cache_simulator.simulate(
-        'BasketballDrive', 1920, 1080, 'Random Access')
+    result = cache_simulator.simulate(TRACE,'BasketballDrive', 1920, 1080, 'Random Access')
 
     print(result)

@@ -14,8 +14,8 @@ HM = "../hm-videomem/"
 
 ENCODER_CMD = HM + "bin/TAppEncoderStatic"
 
-CONFIG = {  # "Low Delay": HM + "cfg/encoder_lowdelay_main.cfg",
-    "Random Access": HM + "cfg/encoder_randomaccess_main.cfg"}
+CONFIG = {"Low Delay": HM + "cfg/encoder_lowdelay_main.cfg",
+        "Random Access": HM + "cfg/encoder_randomaccess_main.cfg"}
 
 VIDEO_CFG_PATH = HM + "cfg/per-sequence/"
 
@@ -73,7 +73,7 @@ def process_video(video_path):
     for cfg, cfg_path in CONFIG.items():
         generate_trace(cfg_path, video_cfg, video_path)
 
-        output = cache_simulator.simulate(title, width, height, cfg)
+        output = cache_simulator.simulate(TRACE_INPUT, title, width, height, cfg)
         cache_simulator.clear()
 
         with open(CACHE_OUTPUT, 'w+') as output_file:
