@@ -32,8 +32,10 @@ class CacheSimulatorHEVC(CacheSim):
                 address = self.get_address(operation, width, height)
 
                 self.dispatcher[key](address)
+        
+        self.printStats()
 
-        return f"{title};{encoder_cfg};{self.hits};{self.misses}"
+        return f"{title},{encoder_cfg},{self.hits},{self.misses}\n"
 
     def get_address(self, operation, width, height):
         # OP <x> <y> <frameId>

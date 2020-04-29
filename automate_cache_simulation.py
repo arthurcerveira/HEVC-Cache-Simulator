@@ -5,9 +5,9 @@ from hevc_cache_simulator import CacheSimulatorHEVC
 
 # Metadata
 TRACE_INPUT = "mem_trace.txt"
-CACHE_OUTPUT = "cache_output.txt"
+CACHE_OUTPUT = "cache_output.csv"
 
-HEADER = "Video Sequence;Encoder Configuration;Hit Count;Miss Count"
+HEADER = "Video Sequence,Encoder Configuration,Hit Count,Miss Count\n"
 
 # HEVC Paths
 HM = "../hm-videomem/"
@@ -15,7 +15,7 @@ HM = "../hm-videomem/"
 ENCODER_CMD = HM + "bin/TAppEncoderStatic"
 
 CONFIG = {"Low Delay": HM + "cfg/encoder_lowdelay_main.cfg",
-        "Random Access": HM + "cfg/encoder_randomaccess_main.cfg"}
+      "Random Access": HM + "cfg/encoder_randomaccess_main.cfg"}
 
 VIDEO_CFG_PATH = HM + "cfg/per-sequence/"
 
@@ -71,24 +71,25 @@ def process_video(video_path):
     title, width, height, video_cfg = get_video_info(video_path)
 
     for cfg, cfg_path in CONFIG.items():
+        cache_simulator = CacheSimulatorHEVC()
+        
         generate_trace(cfg_path, video_cfg, video_path)
 
         output = cache_simulator.simulate(TRACE_INPUT, title, width, height, cfg)
-        cache_simulator.clear()
 
-        with open(CACHE_OUTPUT, 'w+') as output_file:
+        with open(CACHE_OUTPUT, 'a') as output_file:
             output_file.write(output)
 
+        del cache_simulator
         clean()
 
 
 if __name__ == "__main__":
-    cache_simulator = CacheSimulatorHEVC()
-
     # Creates output file
     with open(CACHE_OUTPUT, 'w+') as output_file:
         output_file.write(HEADER)
 
     videos = list_all_videos(VIDEO_SEQUENCES_PATH)
 
-    [process_video(video) for video in videos]
+    for video in videos:
+        process_video(video)
