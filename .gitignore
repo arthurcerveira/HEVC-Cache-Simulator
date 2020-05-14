@@ -20,4 +20,4 @@ __pycache__/
 */mem_trace.txt
 str.bin
 rec.yuv
-cache_output.txt
+cache_output.csv
